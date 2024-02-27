@@ -1,18 +1,12 @@
-import React from 'react';
-import IndexedDb from './indexedDb/IndexedDB';
+import IndexedDBClass from "./indexedDb/IndexedDB";
 
-const App: React.FC = () => {
-  const nameTable = 'Carro'
-  const db = new IndexedDb('TesteCarro',[nameTable])
+export default function App() {
 
-   const newData = db.putValue(nameTable,{marca:"volkswagen",modelo:"gol"})
-  
-
-  return (
+  return(
     <>
-
+    
+      <IndexedDBClass></IndexedDBClass>
     </>
-  );
-};
+  )
 
-export default App;
+}
