@@ -1,12 +1,13 @@
-import IndexedDBClass from "./indexedDb/IndexedDB";
+// Importe o useState e useEffect do React
+import { BackUpChecking } from './backupcheckin/BackUpCheckin';
 
-export default function App() {
+const App = () => {
 
-  return(
+  return (
     <>
-    
-      <IndexedDBClass></IndexedDBClass>
+      <BackUpChecking />
     </>
-  )
+  );
+};
 
-}
+export default App;

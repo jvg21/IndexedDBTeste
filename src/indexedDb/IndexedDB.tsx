@@ -1,71 +1,68 @@
 import { initDB, useIndexedDB } from "react-indexed-db-hook";
 import { DBConfig } from "./dbconfig/DBConfig";
-import { useEffect, useState } from "react";
+import { entryType } from "../backupcheckin/BackUpCheckin";
 
 initDB(DBConfig);
 
-type entryType = {
-    documento: string,
-    data: string,
-    acao: string
-}
 
-const entry = {
-    documento: "15686548621",
-    data: "2024-05-31",
-    acao: "ENTRADA"
-}
-const entry2 = {
-    id: 10,
-    documento: "15686548621",
-    data: "2024-05-30",
-    acao: "SAIDA"
-}
+export default class IndexedDBClass {
+    
+    private database = useIndexedDB("SimposioLogs");
 
-export default function IndexedDBClass() {
-    const { add, getByID, getAll, update, deleteRecord, clear } = useIndexedDB("SimposioLogs");
+    constructor(){
 
-
-    async function addEntry(data: entryType) {
+    }
+    async  addEntry(data: entryType) {
         try {
-            const addResponse = await add(data)
+            const addResponse = await this.database.add(data)
             console.log("Add Success: ", addResponse)
+            return(addResponse)
 
         } catch (error) {
             console.log(error);
         }
     }
 
-    async function getAllentries() {
+    async  getAllentries() {
         try {
-            const getAllResponse = await getAll();
+            const getAllResponse = await this.database.getAll();
             console.log(getAllResponse)
         } catch (error) {
             console.log(error);
         }
     }
 
-    async function clearAllEntries() {
+    async  clearAllEntries() {
         try {
-            const clearAllResponse = await clear();
+            const clearAllResponse = await this.database.clear();
             console.log("Clear: ", true)
         } catch (error) {
             console.log(error);
         }
     }
 
-    async function getEntryByID(id: number) {
+    async  getEntryByID(id: number) {
         try {
-            const getByIDResponse = await getByID(id);
+            const getByIDResponse = await this.database.getByID(id);
             console.log(`Entry ID:${id} `, getByIDResponse)
+            return(getByIDResponse)
         } catch (error) {
             console.log(error);
         }
     }
 
-    async function updateEntry(newData: entryType) {
+    async deleteEntry(id:number) {
         try {
-            const addResponse = await update(newData)
+            const addResponse = await this.database.deleteRecord(id)
+            console.log("Delete Entry: ", addResponse)
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    async  updateEntry(newData: entryType) {
+        try {
+            const addResponse = await this.database.update(newData)
             console.log("Update Success: ", addResponse)
 
         } catch (error) {
@@ -73,14 +70,5 @@ export default function IndexedDBClass() {
         }
     }
 
-    return (
-        <div style={{ width: "500px", display: "flex", background: "red", justifyContent: "space-between" }}>
-            <button onClick={() => { addEntry(entry) }}> Add </button>
-            <button onClick={() => { getEntryByID(10) }}> Get </button>
-            <button onClick={() => { getAllentries() }}> GetAll </button>
-            <button onClick={() => { updateEntry(entry2) }}> Update </button>
-            <button onClick={() => { clearAllEntries() }}> Clear </button>
-        </div>
-    );
 
 }
