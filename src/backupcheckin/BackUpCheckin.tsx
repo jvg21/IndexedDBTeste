@@ -24,6 +24,7 @@ const entry2 = {
 export function BackUpChecking() {
     const [databaseData, setDatabaseData] = useState()
     const [isOnline, setIsOnline] = useState<boolean>(true);
+    const [index, setIndex] = useState<number>(0)
     const indexedDB = new IndexedDBClass()
 
     // useEffect(() => {
@@ -99,23 +100,38 @@ export function BackUpChecking() {
         }
     }
 
-    // const internetstatus = useEffect(()=>{
-    //     const interval = setInterval(()=>{
-    //         setIsOnline(!isOnline)
-    //     },12000)
-    //     return () => clearInterval(interval);
-    // },[isOnline])
-
-
-    // const insert = useEffect(() => {
-    //     var index = 0;
+    // useEffect(() => {
     //     const interval = setInterval(() => {
-    //         InsertInto("54698712354", "ENTRADA")
-    //         if (index === 10) clearInterval(interval)
-    //         index += 1
-    //     }, 5000)
-    //     return () => clearInterval(interval);
-    // })
+    //         InsertInto(String(index), "ENTRADA")
+    //         setIndex(index+1)
+    //     }, 1000)
+
+    //     return () => {
+    // //         clearInterval(intervalOnline);
+    // //         clearInterval(intervalSync);
+    //         clearInterval(interval);
+    //     }
+    // }, [index])
+
+    // useEffect(() => {
+    //     const intervalSync = setInterval(() => {
+    //         console.log("syncando database")
+    //         syncDatabase();
+
+    //     }, 1000)
+
+    //     const intervalOnline = setInterval(() => {
+    //         console.log("mudando status de internet");
+    //         setIsOnline(!isOnline)
+    //     }, 10000)
+
+    //     return ()=>{
+    //         clearInterval(intervalOnline);
+    //         clearInterval(intervalSync);
+    //     }
+    // },[])
+
+
 
 
     async function syncDatabase() {
@@ -125,23 +141,12 @@ export function BackUpChecking() {
             const local = await indexedDB.getAllentries()
             localDB = Array(local)[0] || []
             localDB.map(async (x) => {
-                if (x.sincronizado === '') {
+
+                const getEntry = await verifyEntryinSql(x)
+                if (getEntry.status !== 200) {
                     const insertintoSql = await insertSql(x)
-                    if (insertintoSql.status === 201) {
-                        // await indexedDB.deleteEntry(x.id || -1)
-                        x.sincronizado = new Date().toISOString()
-                        updateSincronizado(x, x.id || 0)
-                    }
-                } else {
-                    const getEntry = await verifyEntryinSql(x)
-                    if (getEntry.status !== 200) {
-                        const insertintoSql = await insertSql(x)
-                        // if (insertintoSql.status === 201) {
-                            // await indexedDB.deleteEntry(x.id || -1)
-                        // }
-                    }
-
-
+                    x.sincronizado = new Date().toISOString()
+                    updateSincronizado(x, x.id || 0)
                 }
             })
 
