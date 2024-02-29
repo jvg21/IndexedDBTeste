@@ -39,9 +39,29 @@ export function BackUpChecking() {
     //     };
     // }, []);window.navigator.onLine
 
-    function obterDataFormatada() {
-        const dataAtual = new Date().toISOString();
-        return dataAtual
+    function obterDataFormatada() { return new Date().toISOString() }
+
+
+    async function insertSql(data: entryType) {
+        return await fetch('http://localhost:3000/entry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    }
+
+    async function updateSincronizado(data: entryType, id: number) { return await indexedDB.updateEntry(data, id) }
+
+    async function verifyEntryinSql(data: entryType) {
+        return await fetch('http://localhost:3000/entry/get', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ documento: data.documento, acao: data.acao, data: data.data }),
+        });
     }
 
     async function InsertInto(doc: string, action: string) {
@@ -51,7 +71,7 @@ export function BackUpChecking() {
                 documento: doc,
                 acao: action,
                 data: obterDataFormatada(),
-                sincronizado: "-"
+                sincronizado: ''
             }
             const localResponse = await indexedDB.addEntry(inputData)
             if (!localResponse) throw new WebTransportError()
@@ -59,20 +79,13 @@ export function BackUpChecking() {
             if (!localInsertedData) throw new WebTransportError()
 
             if (isOnline) {
-                const response = await fetch('http://localhost:3000/entry', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(localInsertedData),
-                });
-                console.log(localInsertedData.id);
+                const response = await insertSql(localInsertedData)
 
                 if (response.status === 201) {
                     localInsertedData.sincronizado = new Date().toISOString()
-                    
-                    const updateData = await indexedDB.updateEntry(localInsertedData,localInsertedData.id);
-                }else{
+                    const updateData = await updateSincronizado(localInsertedData, localResponse)
+
+                } else {
                     console.log("Insert FAILED")
                 }
 
@@ -89,71 +102,53 @@ export function BackUpChecking() {
     // const internetstatus = useEffect(()=>{
     //     const interval = setInterval(()=>{
     //         setIsOnline(!isOnline)
-    //     },100)
+    //     },12000)
     //     return () => clearInterval(interval);
     // },[isOnline])
 
-    // const insert = useEffect(()=>{
-    //     const interval = setInterval(()=>{
+
+    // const insert = useEffect(() => {
+    //     var index = 0;
+    //     const interval = setInterval(() => {
     //         InsertInto("54698712354", "ENTRADA")
-    //     },50)
+    //         if (index === 10) clearInterval(interval)
+    //         index += 1
+    //     }, 5000)
     //     return () => clearInterval(interval);
     // })
 
-    async function getEntryDatabase() {
-        try {
-            const response = await fetch('http://localhost:3000/entry');
-
-            if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Erro na requisição:', error);
-            throw error; // Pode ser interessante lançar o erro novamente para que seja tratado externamente, se necessário.
-        }
-    }
 
     async function syncDatabase() {
-        let cloudDB: entryType[] = []
         let localDB: entryType[] = []
 
         try {
-            const cloud = await getEntryDatabase()
-            cloudDB = Array(cloud.entradas)[0]
-
             const local = await indexedDB.getAllentries()
             localDB = Array(local)[0] || []
+            localDB.map(async (x) => {
+                if (x.sincronizado === '') {
+                    const insertintoSql = await insertSql(x)
+                    if (insertintoSql.status === 201) {
+                        // await indexedDB.deleteEntry(x.id || -1)
+                        x.sincronizado = new Date().toISOString()
+                        updateSincronizado(x, x.id || 0)
+                    }
+                } else {
+                    const getEntry = await verifyEntryinSql(x)
+                    if (getEntry.status !== 200) {
+                        const insertintoSql = await insertSql(x)
+                        // if (insertintoSql.status === 201) {
+                            // await indexedDB.deleteEntry(x.id || -1)
+                        // }
+                    }
 
-            console.log(localDB);
+
+                }
+            })
 
         } catch (err) {
             console.log(err)
         }
-
-        localDB.map((localEntry) => {
-            cloudDB.map((cloudEntry) => {
-                if (localEntry.id === cloudEntry.id) {
-                    indexedDB.deleteEntry(localEntry.id || -1)
-                } else {
-                    fetch('http://localhost:3000/entry', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(localEntry),
-                    });
-                }
-            })
-        })
     }
-
-    // useEffect(() => {
-    //     syncDatabase()
-
-    // }, [])
-
-
 
     return (
         <>
