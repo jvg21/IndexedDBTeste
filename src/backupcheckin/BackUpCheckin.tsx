@@ -5,7 +5,8 @@ export type entryType = {
     id?: number,
     documento: string,
     data: string,
-    acao: string
+    acao: string,
+    sincronizado?: string
 }
 
 const entry = {
@@ -41,7 +42,6 @@ export function BackUpChecking() {
     function obterDataFormatada() {
         const dataAtual = new Date().toISOString();
         return dataAtual
-
     }
 
     async function InsertInto(doc: string, action: string) {
@@ -50,7 +50,8 @@ export function BackUpChecking() {
             const inputData = {
                 documento: doc,
                 acao: action,
-                data: obterDataFormatada()
+                data: obterDataFormatada(),
+                sincronizado: "-"
             }
             const localResponse = await indexedDB.addEntry(inputData)
             if (!localResponse) throw new WebTransportError()
@@ -65,6 +66,16 @@ export function BackUpChecking() {
                     },
                     body: JSON.stringify(localInsertedData),
                 });
+                console.log(localInsertedData.id);
+
+                if (response.status === 201) {
+                    localInsertedData.sincronizado = new Date().toISOString()
+                    
+                    const updateData = await indexedDB.updateEntry(localInsertedData,localInsertedData.id);
+                }else{
+                    console.log("Insert FAILED")
+                }
+
                 console.log("sql insertion", response)
             } else {
                 console.warn("Offline Mode")
@@ -78,14 +89,14 @@ export function BackUpChecking() {
     // const internetstatus = useEffect(()=>{
     //     const interval = setInterval(()=>{
     //         setIsOnline(!isOnline)
-    //     },23999)
+    //     },100)
     //     return () => clearInterval(interval);
     // },[isOnline])
 
     // const insert = useEffect(()=>{
     //     const interval = setInterval(()=>{
     //         InsertInto("54698712354", "ENTRADA")
-    //     },8000)
+    //     },50)
     //     return () => clearInterval(interval);
     // })
 
@@ -103,7 +114,39 @@ export function BackUpChecking() {
         }
     }
 
-  
+    async function syncDatabase() {
+        let cloudDB: entryType[] = []
+        let localDB: entryType[] = []
+
+        try {
+            const cloud = await getEntryDatabase()
+            cloudDB = Array(cloud.entradas)[0]
+
+            const local = await indexedDB.getAllentries()
+            localDB = Array(local)[0] || []
+
+            console.log(localDB);
+
+        } catch (err) {
+            console.log(err)
+        }
+
+        localDB.map((localEntry) => {
+            cloudDB.map((cloudEntry) => {
+                if (localEntry.id === cloudEntry.id) {
+                    indexedDB.deleteEntry(localEntry.id || -1)
+                } else {
+                    fetch('http://localhost:3000/entry', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(localEntry),
+                    });
+                }
+            })
+        })
+    }
 
     // useEffect(() => {
     //     syncDatabase()
@@ -116,7 +159,7 @@ export function BackUpChecking() {
         <>
             <div>
                 {isOnline ? (
-                    <p>Você está online!</p>
+                    <p>Você está online! { }</p>
                 ) : (
                     <p>Você está offline. Verifique sua conexão com a internet.</p>
                 )}

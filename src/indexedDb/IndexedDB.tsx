@@ -27,6 +27,7 @@ export default class IndexedDBClass {
         try {
             const getAllResponse = await this.database.getAll();
             console.log(getAllResponse)
+            return(getAllResponse)
         } catch (error) {
             console.log(error);
         }
@@ -60,7 +61,7 @@ export default class IndexedDBClass {
             console.log(error);
         }
     }
-    async  updateEntry(newData: entryType) {
+    async  updateEntry(newData: entryType,id:number) {
         try {
             const addResponse = await this.database.update(newData)
             console.log("Update Success: ", addResponse)
