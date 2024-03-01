@@ -5,20 +5,20 @@ export type entryType = {
     id?: number,
     documento: string,
     data: string,
-    acao: string,
+    // acao: string,
     sincronizado?: string
 }
 
 const entry = {
     documento: "15686545521",
     data: "25/02/2024",
-    acao: "ENTRADA"
+    // acao: "ENTRADA"
 }
 const entry2 = {
     id: 10,
     documento: "15686548621",
     data: "2024-05-30",
-    acao: "SAIDA"
+    // acao: "SAIDA"
 }
 
 export function BackUpChecking() {
@@ -61,16 +61,16 @@ export function BackUpChecking() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ documento: data.documento, acao: data.acao, data: data.data }),
+            body: JSON.stringify({ documento: data.documento, data: data.data }),
         });
     }
 
-    async function InsertInto(doc: string, action: string) {
+    async function InsertInto(doc: string) {
         try {
 
             const inputData = {
                 documento: doc,
-                acao: action,
+                // acao: action,
                 data: obterDataFormatada(),
                 sincronizado: ''
             }
@@ -102,9 +102,9 @@ export function BackUpChecking() {
 
     // useEffect(() => {
     //     const interval = setInterval(() => {
-    //         InsertInto(String(index), "ENTRADA")
+    //         InsertInto(String(index))
     //         setIndex(index+1)
-    //     }, 1000)
+    //     }, 8000)
 
     //     return () => {
     // //         clearInterval(intervalOnline);
@@ -118,7 +118,7 @@ export function BackUpChecking() {
     //         console.log("syncando database")
     //         syncDatabase();
 
-    //     }, 1000)
+    //     }, 50000)
 
     //     const intervalOnline = setInterval(() => {
     //         console.log("mudando status de internet");
@@ -167,7 +167,7 @@ export function BackUpChecking() {
             <div style={{ width: "500px", display: "flex", background: "red", justifyContent: "space-around" }}>
                 <button onClick={() => { indexedDB.addEntry(entry) }}> Add </button>
                 <button onClick={() => { indexedDB.getAllentries() }}> GetAll </button>
-                <button onClick={() => { InsertInto("54698712354", "ENTRADA") }}>addData</button>
+                <button onClick={() => { InsertInto("54698712354") }}>addData</button>
                 {/* //             <button onClick={() => { getEntryByID(10) }}> Get </button>*/
     /*             <button onClick={() => { updateEntry(entry2) }}> Update </button>
                 <button onClick={() => { clearAllEntries() }}> Clear </button> */}
