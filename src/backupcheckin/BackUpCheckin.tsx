@@ -9,20 +9,7 @@ export type entryType = {
     sincronizado?: string
 }
 
-const entry = {
-    documento: "15686545521",
-    data: "25/02/2024",
-    // acao: "ENTRADA"
-}
-const entry2 = {
-    id: 10,
-    documento: "15686548621",
-    data: "2024-05-30",
-    // acao: "SAIDA"
-}
-
 export function BackUpChecking() {
-    const [databaseData, setDatabaseData] = useState()
     const [isOnline, setIsOnline] = useState<boolean>(true);
     const [index, setIndex] = useState<number>(0)
     const indexedDB = new IndexedDBClass()
@@ -41,7 +28,6 @@ export function BackUpChecking() {
     // }, []);window.navigator.onLine
 
     function obterDataFormatada() { return new Date().toISOString() }
-
 
     async function insertSql(data: entryType) {
         return await fetch('http://localhost:3000/entry', {
@@ -67,7 +53,6 @@ export function BackUpChecking() {
 
     async function InsertInto(doc: string) {
         try {
-
             const inputData = {
                 documento: doc,
                 // acao: action,
@@ -81,20 +66,17 @@ export function BackUpChecking() {
 
             if (isOnline) {
                 const response = await insertSql(localInsertedData)
-
                 if (response.status === 201) {
                     localInsertedData.sincronizado = new Date().toISOString()
                     const updateData = await updateSincronizado(localInsertedData, localResponse)
-
                 } else {
                     console.log("Insert FAILED")
                 }
-
                 console.log("sql insertion", response)
+                
             } else {
                 console.warn("Offline Mode")
             }
-
         } catch (error) {
             console.log(error)
         }
@@ -131,7 +113,6 @@ export function BackUpChecking() {
     //     }
     // },[])
 
-
     async function syncDatabase() {
         let localDB: entryType[] = []
 
@@ -139,42 +120,33 @@ export function BackUpChecking() {
             const local = await indexedDB.getAllentries()
             localDB = Array(local)[0] || []
             localDB.map(async (x) => {
-
                 const getEntry = await verifyEntryinSql(x)
-                console.log(getEntry.status);
-                
+                // console.log(getEntry.status);
+
                 if (getEntry.status !== 200) {
                     const insertintoSql = await insertSql(x)
                     x.sincronizado = new Date().toISOString()
                     updateSincronizado(x, x.id || 0)
                 }
             })
-
         } catch (err) {
             console.log(err)
         }
     }
-
     return (
         <>
             <div>
-                {isOnline ? (
-                    <p>Você está online! { }</p>
-                ) : (
-                    <p>Você está offline. Verifique sua conexão com a internet.</p>
-                )}
+                {isOnline ? (<p>Você está online!</p>) : (<p>Você está offline. Verifique sua conexão com a internet.</p>)}
             </div>
             <div style={{ width: "500px", display: "flex", background: "red", justifyContent: "space-around" }}>
-                <button onClick={() => { indexedDB.addEntry(entry) }}> Add </button>
-                <button onClick={() => { indexedDB.getAllentries() }}> GetAll </button>
                 <button onClick={() => { InsertInto("54698712354") }}>addData</button>
-                {/* //             <button onClick={() => { getEntryByID(10) }}> Get </button>*/
-    /*             <button onClick={() => { updateEntry(entry2) }}> Update </button>
-                <button onClick={() => { clearAllEntries() }}> Clear </button> */}
+                <button onClick={() => { indexedDB.getAllentries() }}> GetAll </button>
+                {/* <button onClick={() => { getEntryByID(10) }}> Get </button>
+                 <button onClick={() => { updateEntry(entry2) }}> Update </button>*/}
+                <button onClick={() => { indexedDB.clearAllEntries() }}> Clear </button>
                 <button onClick={() => { indexedDB.deleteEntry(51) }}> Delete </button>
                 <button onClick={() => { syncDatabase() }}> sync </button>
             </div>
-
         </>
     )
 }

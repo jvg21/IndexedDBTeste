@@ -8,16 +8,13 @@ initDB(DBConfig);
 export default class IndexedDBClass {
     
     private database = useIndexedDB("SimposioLogs");
+    constructor(){}
 
-    constructor(){
-
-    }
     async  addEntry(data: entryType) {
         try {
             const addResponse = await this.database.add(data)
             console.log("Add Success: ", addResponse)
             return(addResponse)
-
         } catch (error) {
             console.log(error);
         }
@@ -56,7 +53,6 @@ export default class IndexedDBClass {
         try {
             const addResponse = await this.database.deleteRecord(id)
             console.log("Delete Entry: ", addResponse)
-
         } catch (error) {
             console.log(error);
         }
@@ -65,7 +61,6 @@ export default class IndexedDBClass {
         try {
             const addResponse = await this.database.update(newData)
             console.log("Update Success: ", addResponse)
-
         } catch (error) {
             console.log(error);
         }
