@@ -132,8 +132,6 @@ export function BackUpChecking() {
     // },[])
 
 
-
-
     async function syncDatabase() {
         let localDB: entryType[] = []
 
@@ -143,6 +141,8 @@ export function BackUpChecking() {
             localDB.map(async (x) => {
 
                 const getEntry = await verifyEntryinSql(x)
+                console.log(getEntry.status);
+                
                 if (getEntry.status !== 200) {
                     const insertintoSql = await insertSql(x)
                     x.sincronizado = new Date().toISOString()
