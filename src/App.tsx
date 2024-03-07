@@ -4,9 +4,7 @@ import { BackUpChecking } from './backupcheckin/BackUpCheckin';
 const App = () => {
 
   return (
-    <>
       <BackUpChecking />
-    </>
   );
 };
 

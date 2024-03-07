@@ -4,13 +4,11 @@ import { entryType } from "../backupcheckin/BackUpCheckin";
 
 initDB(DBConfig);
 
-
 export default class IndexedDBClass {
     
     private database = useIndexedDB("SimposioLogs");
-    constructor(){}
 
-    async  addEntry(data: entryType) {
+    async addEntry(data: entryType) {
         try {
             const addResponse = await this.database.add(data)
             console.log("Add Success: ", addResponse)
@@ -32,14 +30,14 @@ export default class IndexedDBClass {
 
     async  clearAllEntries() {
         try {
-            const clearAllResponse = await this.database.clear();
+            await this.database.clear();
             console.log("Clear: ", true)
         } catch (error) {
             console.log(error);
         }
     }
 
-    async  getEntryByID(id: number) {
+    async getEntryByID(id: number) {
         try {
             const getByIDResponse = await this.database.getByID(id);
             console.log(`Entry ID:${id} `, getByIDResponse)
@@ -57,7 +55,7 @@ export default class IndexedDBClass {
             console.log(error);
         }
     }
-    async  updateEntry(newData: entryType,id:number) {
+    async  updateEntry(newData: entryType) {
         try {
             const addResponse = await this.database.update(newData)
             console.log("Update Success: ", addResponse)

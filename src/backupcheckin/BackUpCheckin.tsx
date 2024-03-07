@@ -5,13 +5,14 @@ export type entryType = {
     id?: number,
     documento: string,
     data: string,
-    // acao: string,
     sincronizado?: string
+    // acao: string,
 }
 
 export function BackUpChecking() {
     const [isOnline, setIsOnline] = useState<boolean>(true);
     const [index, setIndex] = useState<number>(0)
+    const [insertTeste, setInsertTeste] = useState<boolean>(false)
     const indexedDB = new IndexedDBClass()
 
     // useEffect(() => {
@@ -39,7 +40,7 @@ export function BackUpChecking() {
         });
     }
 
-    async function updateSincronizado(data: entryType, id: number) { return await indexedDB.updateEntry(data, id) }
+    async function updateSincronizado(data: entryType) { return await indexedDB.updateEntry(data) }
 
     async function verifyEntryinSql(data: entryType) {
         return await fetch('http://localhost:3000/entry/get', {
@@ -55,9 +56,9 @@ export function BackUpChecking() {
         try {
             const inputData = {
                 documento: doc,
-                // acao: action,
                 data: obterDataFormatada(),
                 sincronizado: ''
+                // acao: action,
             }
             const localResponse = await indexedDB.addEntry(inputData)
             if (!localResponse) throw new WebTransportError()
@@ -68,12 +69,12 @@ export function BackUpChecking() {
                 const response = await insertSql(localInsertedData)
                 if (response.status === 201) {
                     localInsertedData.sincronizado = new Date().toISOString()
-                    const updateData = await updateSincronizado(localInsertedData, localResponse)
+                    const updateData = await updateSincronizado(localInsertedData)
                 } else {
                     console.log("Insert FAILED")
                 }
                 console.log("sql insertion", response)
-                
+
             } else {
                 console.warn("Offline Mode")
             }
@@ -82,36 +83,36 @@ export function BackUpChecking() {
         }
     }
 
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         InsertInto(String(index))
-    //         setIndex(index+1)
-    //     }, 8000)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (insertTeste) {
+                InsertInto(String(index))
+                setIndex(index + 1)
+            }
+        }, 8000)
 
-    //     return () => {
-    // //         clearInterval(intervalOnline);
-    // //         clearInterval(intervalSync);
-    //         clearInterval(interval);
-    //     }
-    // }, [index])
+        return () => {
+            clearInterval(interval);
+        }
+    }, [index,insertTeste])
+    
+    useEffect(() => {
+        // const intervalSync = setInterval(() => {
+        //     console.log("syncando database")
+        //     syncDatabase();
 
-    // useEffect(() => {
-    //     const intervalSync = setInterval(() => {
-    //         console.log("syncando database")
-    //         syncDatabase();
+        // }, 50000)
 
-    //     }, 50000)
+        const intervalOnline = setInterval(() => {
+            console.log("mudando status de internet");
+            setIsOnline(!isOnline)
+        }, 10000)
 
-    //     const intervalOnline = setInterval(() => {
-    //         console.log("mudando status de internet");
-    //         setIsOnline(!isOnline)
-    //     }, 10000)
-
-    //     return ()=>{
-    //         clearInterval(intervalOnline);
-    //         clearInterval(intervalSync);
-    //     }
-    // },[])
+        return () => {
+            clearInterval(intervalOnline);
+            // clearInterval(intervalSync);
+        }
+    }, [])
 
     async function syncDatabase() {
         let localDB: entryType[] = []
@@ -126,7 +127,7 @@ export function BackUpChecking() {
                 if (getEntry.status !== 200) {
                     const insertintoSql = await insertSql(x)
                     x.sincronizado = new Date().toISOString()
-                    updateSincronizado(x, x.id || 0)
+                    updateSincronizado(x)
                 }
             })
         } catch (err) {
@@ -139,13 +140,13 @@ export function BackUpChecking() {
                 {isOnline ? (<p>Você está online!</p>) : (<p>Você está offline. Verifique sua conexão com a internet.</p>)}
             </div>
             <div style={{ width: "500px", display: "flex", background: "red", justifyContent: "space-around" }}>
-                <button onClick={() => { InsertInto("54698712354") }}>addData</button>
                 <button onClick={() => { indexedDB.getAllentries() }}> GetAll </button>
-                {/* <button onClick={() => { getEntryByID(10) }}> Get </button>
-                 <button onClick={() => { updateEntry(entry2) }}> Update </button>*/}
                 <button onClick={() => { indexedDB.clearAllEntries() }}> Clear </button>
-                <button onClick={() => { indexedDB.deleteEntry(51) }}> Delete </button>
                 <button onClick={() => { syncDatabase() }}> sync </button>
+            </div>
+            <div>
+                <p>{insertTeste ? "inserindo automatico" : "não inserindo"}</p>
+                <button onClick={() => { setInsertTeste(!insertTeste) }}>{insertTeste ? "parar Teste" : "iniciar Teste"}</button>
             </div>
         </>
     )
