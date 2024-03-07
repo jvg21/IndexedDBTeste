@@ -8,7 +8,6 @@ export const DBConfig = {
       storeSchema: [
         { name: "documento", keypath: "documento", options: { unique: false } },
         { name: "data", keypath: "data", options: { unique: false } },
-        { name: "acao", keypath: "acao", options: { unique: false } }
       ],
     },
     // {
